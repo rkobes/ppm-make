@@ -1,0 +1,71 @@
+--- #YAML:1.0
+name:         PPM-Make
+version:      0.96
+version_from: lib/PPM/Make.pm
+installdirs:  site
+license:      perl
+abstract:     Make a ppm package from a CPAN distribution
+author:
+    - 'Randy Kobes <r.kobes@uwinnipeg.ca>'
+requires:
+    Config::IniFiles:              0
+    CPAN::DistnameInfo:            0
+    File::HomeDir:                 0.52
+    File::Spec:                    0
+    Getopt::Long:                  2.33
+    LWP:                           0
+    Pod::Find:                     0.23
+    Pod::Usage:                    1
+    XML::Parser:                   2
+    YAML:                          0
+    HTML::Entities:                0
+    version:                       0
+provides:
+  PPM::Make:
+    file: lib/PPM/Make.pm
+    version: 0.96
+  PPM::Make::Util:
+    file: lib/PPM/Make/Util.pm
+    version: 0.96
+  PPM::Make::Install:
+    file: lib/PPM/Make/Install.pm
+    version: 0.96
+  PPM::Make::Config:
+    file: lib/PPM/Make/Config.pm
+    version: 0.96
+  PPM::Make::RepositorySummary:
+    file: lib/PPM/Make/RepositorySummary.pm
+    version: 0.96
+  PPM::Make::Meta:
+    file: lib/PPM/Make/Meta.pm
+    version: 0.96
+  PPM::Make::Bundle:
+    file: lib/PPM/Make/Bundle.pm
+    version: 0.96
+  PPM::Make::Search:
+    file: lib/PPM/Make/Search.pm
+    version: 0.96
+  PPM::Make::CPAN:
+    file: lib/PPM/Make/CPAN.pm
+    version: 0.96
+no_index:
+  package:
+    - ExtUtils::MakeMaker::_version
+distribution_type: module
+urls:
+   license: http://dev.perl.org/licenses/
+meta-spec:
+  version: 1.3
+  url: http://module-build.sourceforge.net/META-spec-v1.3.html
+resources:
+  license: http://dev.perl.org/licenses/
+  homepage: http://cpan-search.svn.sourceforge.net/viewvc/cpan-search/PPM-Make/
+  bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=PPM-Make
+  AnnoCPAN: http://annocpan.org/dist/PPM-Make
+  CPANForum: http://www.cpanforum.com/dist/PPM-Make
+  CPANTS: http://cpants.perl.org/dist/PPM-Make
+  Rating: http://cpanratings.perl.org/d/PPM-Make
+  SearchCPAN: http://search.cpan.org/~RKOBES/PPM-Make/
+  Testers: http://cpantesters.perl.org/show/PPM-Make.html
+  UWinnipeg: http://cpan.uwinnipeg.ca/dist/PPM-Make
+generated_by: Randy Kobes
