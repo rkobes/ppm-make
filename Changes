@@ -1,5 +1,9 @@
 Revision history for Perl extension PPM::Make.
 
+0.97  Sat, Mar 21, 2009
+  - In PPM::Make::Meta::parse_make, skip MAN3PODS that can appear 
+    if some words from @wanted found (patch supllied by Serguei Trouchelle)
+
 0.96 Fri, Dec 26, 2008
   - if distro misses NAME, use DISTNAME if available (patch provided by 
     Serguei Trouchelle)

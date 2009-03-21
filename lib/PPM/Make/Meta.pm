@@ -152,6 +152,8 @@ sub parse_make {
     next unless $flag;
     last if /MakeMaker post_initialize/;
     next unless /$re/;
+    # Skip MAN3PODS that can appear here if some words from @wanted found
+    next if /^#\s+MAN3PODS => /;
     chomp;
     s/^#*\s+// or next;
     push @lines, $_;
