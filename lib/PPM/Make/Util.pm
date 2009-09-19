@@ -659,6 +659,7 @@ C<A/AB/ABCDEFG/file.tar.gz>.
 
 sub cpan_file {
   my ($cpanid, $file) = @_;
+  return $file if $file =~ m!/!;
   (my $cpan_loc = $cpanid) =~ s{^(\w)(\w)(.*)}{$1/$1$2/$1$2$3};
   return qq{$cpan_loc/$file};
 }
