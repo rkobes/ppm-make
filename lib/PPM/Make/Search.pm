@@ -7,7 +7,7 @@ use PPM::Make::Util qw(:all);
 use XML::Parser;
 use LWP::Simple;
 
-our $VERSION = '0.96';
+our $VERSION = '0.97';
 our ($ERROR);
 
 my $info_soap;

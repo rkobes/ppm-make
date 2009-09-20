@@ -1,12 +1,12 @@
 --- #YAML:1.0
 name:         PPM-Make
-version:      0.96
+version:      0.97
 version_from: lib/PPM/Make.pm
 installdirs:  site
 license:      perl
 abstract:     Make a ppm package from a CPAN distribution
 author:
-    - 'Randy Kobes <r.kobes@uwinnipeg.ca>'
+    - 'Randy Kobes <randy.kobes@gmail.com>'
 requires:
     Config::IniFiles:              0
     CPAN::DistnameInfo:            0
@@ -23,31 +23,31 @@ requires:
 provides:
   PPM::Make:
     file: lib/PPM/Make.pm
-    version: 0.96
+    version: 0.97
   PPM::Make::Util:
     file: lib/PPM/Make/Util.pm
-    version: 0.96
+    version: 0.97
   PPM::Make::Install:
     file: lib/PPM/Make/Install.pm
-    version: 0.96
+    version: 0.97
   PPM::Make::Config:
     file: lib/PPM/Make/Config.pm
-    version: 0.96
+    version: 0.97
   PPM::Make::RepositorySummary:
     file: lib/PPM/Make/RepositorySummary.pm
-    version: 0.96
+    version: 0.97
   PPM::Make::Meta:
     file: lib/PPM/Make/Meta.pm
-    version: 0.96
+    version: 0.97
   PPM::Make::Bundle:
     file: lib/PPM/Make/Bundle.pm
-    version: 0.96
+    version: 0.97
   PPM::Make::Search:
     file: lib/PPM/Make/Search.pm
-    version: 0.96
+    version: 0.97
   PPM::Make::CPAN:
     file: lib/PPM/Make/CPAN.pm
-    version: 0.96
+    version: 0.97
 no_index:
   package:
     - ExtUtils::MakeMaker::_version
@@ -59,7 +59,7 @@ meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.3.html
 resources:
   license: http://dev.perl.org/licenses/
-  homepage: http://cpan-search.svn.sourceforge.net/viewvc/cpan-search/PPM-Make/
+  homepage: http://github.com/rkobes/ppm-make
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=PPM-Make
   AnnoCPAN: http://annocpan.org/dist/PPM-Make
   CPANForum: http://www.cpanforum.com/dist/PPM-Make

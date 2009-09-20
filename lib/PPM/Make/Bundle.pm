@@ -13,7 +13,7 @@ use PPM::Make::Config qw(:all);
 use PPM::Make::Search;
 use LWP::Simple;
 
-our $VERSION = '0.96';
+our $VERSION = '0.97';
 
 my @cpan_mirrors = url_list();
 my $protocol = qr{^(http|ftp)://};
@@ -49,7 +49,8 @@ sub new {
   my $self = {cwd => $cwd, opts => $opts, files => {}, name => '',
 	      build_dir => $build_dir, has => $has, zipdist => $bundle_name,
 	      clean => $clean, arch => $arch, os => $os,
-	      search => $search};
+	      search => $search, no_remote_lookup => $opts->{no_remote_lookup},
+	      };
   bless $self, $class;
 }
 
@@ -114,8 +115,9 @@ sub get_info {
   my ($self, $dist) = @_;
   return if (-f $dist or $dist =~ /^$protocol/ or $dist =~ /$ext$/);
   my $search = $self->{search};
+  my $no_remote_lookup = $self->{no_remote_lookup};
   $dist =~ s{::}{-}g;
-  if ($search) {
+  unless ($no_remote_lookup) {
     if ($search->search($dist, mode => 'dist')) {
       my $results = $search->{dist_results}->{$dist};
       my $cpan_file = cpan_file($results->{cpanid}, $results->{dist_file});
@@ -153,17 +155,20 @@ sub from_cpan {
     push @prereqs, $mod unless ($mod eq 'perl' or is_core($mod));
   }
   my $search = $self->{search};
-  if ($search and scalar @prereqs > 0) {
-    my $matches = $search->search(\@prereqs, mode => 'mod');
-    if ($matches and (ref($matches) eq 'HASH')) {
-      foreach my $mod (keys %$matches) {
-	    my $item = $matches->{$mod};
-	    my $dist_name = $item->{dist_name};
-	    next if is_ap_core($dist_name);
-	    my $cpan_file = cpan_file($item->{cpanid}, $item->{dist_file});
-	    push @{$self->{files}->{$name}->{prereqs}}, 
-	      {dist_name => $dist_name,
-	      cpan_file => $cpan_file};
+  my $no_remote_lookup = $self->{no_remote_lookup};
+  unless ($no_remote_lookup) {
+    if (scalar @prereqs > 0) {
+      my $matches = $search->search(\@prereqs, mode => 'mod');
+      if ($matches and (ref($matches) eq 'HASH')) {
+        foreach my $mod (keys %$matches) {
+	      my $item = $matches->{$mod};
+	      my $dist_name = $item->{dist_name};
+	      next if is_ap_core($dist_name);
+	      my $cpan_file = cpan_file($item->{cpanid}, $item->{dist_file});
+	      push @{$self->{files}->{$name}->{prereqs}}, 
+	        {dist_name => $dist_name,
+	        cpan_file => $cpan_file};
+        }
       }
     }
   }
@@ -271,22 +276,25 @@ sub fetch_prereqs {
     push @prereqs, $mod unless ($mod eq 'perl' or is_core($mod));
   }
   my $search = $self->{search};
-  if ($search and scalar @prereqs > 0) {
-    my $matches = $search->search(\@prereqs, mode => 'mod');
-    if ($matches and (ref($matches) eq 'HASH')) {
-      foreach my $mod(keys %$matches) {
-	  next if is_ap_core($matches->{$mod}->{dist_name});
-	  print qq{\nFetching prerequisite "$mod"\n};
-	  my $download = $cpan_mirrors[0] . '/authors/id/' . 
-	    $matches->{$mod}->{download};
-	  my $ppm = PPM::Make->new(%{$self->{opts}},
-	    			 no_cfg => 1, dist => $download);
-	  $ppm->make_ppm();
-	  (my $name = $ppm->{ppd}) =~ s{\.ppd$}{};
-	  $self->{files}->{$name} = {cwd => $ppm->{cwd},
-	    			   ppd => $ppm->{ppd},
-		    		   ar => $ppm->{codebase}};
-	  $self->fetch_prereqs($ppm);
+  my $no_remote_lookup = $self->{no_remote_lookup};
+  unless ($no_remote_lookup) {
+    if (scalar @prereqs > 0) {
+      my $matches = $search->search(\@prereqs, mode => 'mod');
+      if ($matches and (ref($matches) eq 'HASH')) {
+        foreach my $mod(keys %$matches) {
+	    next if is_ap_core($matches->{$mod}->{dist_name});
+	    print qq{\nFetching prerequisite "$mod"\n};
+	    my $download = $cpan_mirrors[0] . '/authors/id/' . 
+	      $matches->{$mod}->{download};
+	    my $ppm = PPM::Make->new(%{$self->{opts}},
+	        			 no_cfg => 1, dist => $download);
+	    $ppm->make_ppm();
+	    (my $name = $ppm->{ppd}) =~ s{\.ppd$}{};
+	    $self->{files}->{$name} = {cwd => $ppm->{cwd},
+	        			   ppd => $ppm->{ppd},
+		        		   ar => $ppm->{codebase}};
+	    $self->fetch_prereqs($ppm);
+        }
       }
     }
   }
