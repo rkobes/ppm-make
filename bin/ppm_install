@@ -14,7 +14,7 @@ GetOptions(\%opts,
            'remove|r',
            'force|f',
            'upgrade',
-	   'skip',
+	       'skip',
           ) or pod2usage(2);
 
 my $dist = shift;

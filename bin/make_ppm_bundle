@@ -38,13 +38,14 @@ GetOptions(\%opts,
            'host:s',
            'user:s',
            'passwd:s',
-	   'no-ppm4',
-	   'no-html',
-	   'reps:s' => \@reps,
-	   'clean',
-	   'no-upload',
-	   'bundle_name:s',
-	   'skip',
+	       'no-ppm4',
+	       'no-html',
+	       'no-remote-lookup',
+	       'reps:s' => \@reps,
+	       'clean',
+	       'no-upload',
+	       'bundle_name:s',
+	       'skip',
           ) or pod2usage(2);
 
 my $dist = shift;
@@ -61,10 +62,11 @@ for (qw(ppd ar host user passwd zip)) {
 $opts{upload} = \%upload if defined $upload{ppd};
 $opts{dist} = $dist if $dist;
 
-for (qw(cfg ppm4 html upload)) {
+for (qw(cfg ppm4 html upload remote-lookup)) {
   my $given = 'no-' . $_;
   next unless $opts{$given};
   my $passed = 'no_' . $_;
+  $passed =~ s/-/_/g;
   $opts{$passed} = delete $opts{$given};
 }
 
@@ -116,6 +118,7 @@ Options:
  [ --zipdist]              : create a zip file of the .ppd and .tar.gz files
  [ --no-ppm4]              : don't add ppm4 extensions to the ppd file
  [ --no-html]              : don't generate html documentation
+ [ --no-remote-lookup]     : don't use external data sources for meta information
  [ --bundle_name ] name    : use the specified name as the bundle name
  [ --no-upload]            : don't upload individual ppm packages
  [ --clean ]               : remove the temporary build directory

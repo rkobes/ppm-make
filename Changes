@@ -5,6 +5,10 @@ Revision history for Perl extension PPM::Make.
     if some words from @wanted found (patch supllied by Serguei Trouchelle)
   - Address CPAN dist download failure:
      http://rt.cpan.org/Ticket/Display.html?id=49717
+  - Add no_remote_lookup option, which if specified, will not search
+    remote databases nor CPAN.pm for information not contained in the
+    files of the distribution:
+      http://rt.cpan.org/Ticket/Display.html?id=36798
 
 0.96 Fri, Dec 26, 2008
   - if distro misses NAME, use DISTNAME if available (patch provided by 

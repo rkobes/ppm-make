@@ -34,10 +34,10 @@ sub new {
 	      args => {},
 	      ppd => '',
 	      archive => '',
-              prereq_pm => {},
+          prereq_pm => {},
 	      file => '',
 	      version => '',
-              use_mb => '',
+          use_mb => '',
 	      ARCHITECTURE => $arch,
 	      OS => $os,
 	     };

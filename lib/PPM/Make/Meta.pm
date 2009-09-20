@@ -13,13 +13,14 @@ our $VERSION = '0.96';
 sub new {
   my ($class, %opts) = @_;
   my $cwd = $opts{dir};
-  my $search = $opts{search};
   die qq{Please supply the name of the directory} unless $cwd;
   die qq{The supplied directory "$cwd" doesn't exist} unless -d $cwd;
+  my $search = $opts{search};
+  my $no_remote_lookup = $opts{no_remote_lookup};
   die qq{Please supply a PPM::Make::Search object}
     unless (defined $search and (ref($search) eq 'PPM::Make::Search'));
   my $self = {info => {}, cwd => $cwd,
-	      search => $search};
+	      search => $search, no_remote_lookup => $no_remote_lookup};
   bless $self, $class;
 }
 
@@ -254,13 +255,13 @@ sub guess_abstract {
     my $mod_results = $search->{mod_results};
     if (defined $mod_results and defined $mod_results->{$try}) {
       return $mod_results->{$try}->{mod_abs}
-	if defined $mod_results->{$try}->{mod_abs};
+	       if defined $mod_results->{$try}->{mod_abs};
     }
     if ($search->search($try, mode => 'mod')) {
       $mod_results = $search->{mod_results};
       if (defined $mod_results and defined $mod_results->{$try}) {
-	return $mod_results->{$try}->{mod_abs}
-	  if defined $mod_results->{$try}->{mod_abs};
+        return $mod_results->{$try}->{mod_abs}
+	        if defined $mod_results->{$try}->{mod_abs};
       }
     }
     else {
@@ -272,13 +273,13 @@ sub guess_abstract {
     my $dist_results = $search->{dist_results};
     if (defined $dist_results and defined $dist_results->{$try}) {
       return $dist_results->{$try}->{dist_abs}
-	if defined $dist_results->{$try}->{dist_abs};
+	    if defined $dist_results->{$try}->{dist_abs};
     }
     if ($search->search($try, mode => 'dist')) {
       $dist_results = $search->{dist_results};
       if (defined $dist_results and defined $dist_results->{$try}) {
-	return $dist_results->{$try}->{dist_abs}
-	  if defined $dist_results->{$try}->{dist_abs};
+	    return $dist_results->{$try}->{dist_abs}
+	      if defined $dist_results->{$try}->{dist_abs};
       }
     }
     else {

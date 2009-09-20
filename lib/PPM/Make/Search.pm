@@ -183,39 +183,41 @@ sub ppd_mod_search {
   my $self = shift;
   my @mods = @{$self->{todo}};
   my @todo = ();
-  foreach my $mod (@mods) {
-    my $query = ($mod =~ /::/) ? $mod : "$mod::";
-    my $content = get($meta . $query . '/META.ppd');
-    unless (defined $content and $content =~ /xml version/) {
-      push @todo, $mod;
-      next;
-    }
-    my $d = parse_ppd($content);
-    my $info = {};
-    my $provide = $d->{PROVIDE};
-    foreach my $item (@$provide) {
-      if ($item->{NAME} eq $mod) {
-	$info->{mod_name} = $item->{NAME};
-	$info->{mod_vers} = $item->{VERSION};
+  if (scalar @mods > 0) {
+    foreach my $mod (@mods) {
+      my $query = ($mod =~ /::/) ? $mod : ($mod . '::');
+      my $content = get($meta . $query . '/META.ppd');
+      unless (defined $content and $content =~ /xml version/) {
+        push @todo, $mod;
+        next;
       }
+      my $d = parse_ppd($content);
+      my $info = {};
+      my $provide = $d->{PROVIDE};
+      foreach my $item (@$provide) {
+        if ($item->{NAME} eq $mod) {
+	      $info->{mod_name} = $item->{NAME};
+          $info->{mod_vers} = $item->{VERSION};
+        }
+      }
+      next unless defined $info->{mod_name};
+      (my $trial = $d->{TITLE}) =~ s/-/::/g;
+      if ($trial eq $mod) {
+        $info->{mod_abs} = $d->{ABSTRACT};
+      }
+      my $author = $d->{AUTHOR};
+      $author =~ s/&lt;/</;
+      $author =~ s/&gt;/>/;
+      $info->{author} = $author;
+      (my $cpanfile = $d->{CODEBASE}->{HREF}) =~ s{$meta/cpan/authors/id/}{};
+      (my $cpanid = $cpanfile) =~ s{\w/\w\w/(\w+)/.*}{$1};
+      $info->{cpanid} = $cpanid;
+      $info->{dist_file} = $cpanfile;
+      $info->{dist_name} = file_to_dist($cpanfile);
+      $self->{mod_results}->{$mod} = $info;
+      $self->{dist_id}->{$info->{dist_name}} ||=
+        check_id($info->{dist_file});
     }
-    next unless defined $info->{mod_name};
-    (my $trial = $d->{TITLE}) =~ s/-/::/g;
-    if ($trial eq $mod) {
-      $info->{mod_abs} = $d->{ABSTRACT};
-    }
-    my $author = $d->{AUTHOR};
-    $author =~ s/&lt;/</;
-    $author =~ s/&gt;/>/;
-    $info->{author} = $author;
-    (my $cpanfile = $d->{CODEBASE}->{HREF}) =~ s{$meta/cpan/authors/id/}{};
-    (my $cpanid = $cpanfile) =~ s{\w/\w\w/(\w+)/.*}{$1};
-    $info->{cpanid} = $cpanid;
-    $info->{dist_file} = $cpanfile;
-    $info->{dist_name} = file_to_dist($cpanfile);
-    $self->{mod_results}->{$mod} = $info;
-    $self->{dist_id}->{$info->{dist_name}} ||=
-      check_id($info->{dist_file});
   }
   if (scalar @todo > 0) {
     $self->{todo} = \@todo;

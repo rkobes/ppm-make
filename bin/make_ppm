@@ -39,6 +39,7 @@ GetOptions(\%opts,
            'passwd:s',
 	   'no-ppm4',
 	   'no-html',
+	   'no-remote-lookup',
 	   'skip',
           ) or pod2usage(2);
 
@@ -56,10 +57,11 @@ for (qw(ppd ar host user passwd zip)) {
 $opts{upload} = \%upload if defined $upload{ppd};
 $opts{dist} = $dist if $dist;
 
-for (qw(cfg ppm4 html)) {
+for (qw(cfg ppm4 html remote-lookup)) {
   my $given = 'no-' . $_;
   next unless $opts{$given};
   my $passed = 'no_' . $_;
+  $passed =~ s/-/_/g;
   $opts{$passed} = delete $opts{$given};
 }
 
@@ -105,7 +107,7 @@ Options:
  [ --no_case ]             : for module searches, ignore case
  [ --no-case ]             : for module searches, ignore case
  [ --no_cfg ]              : do not read a .ppmcfg configuration file
- [ --no-cfg ]              : do not read a .ppmcfg configuration file
+ [ --no-remote-lookup]     : don't use external data sources for meta information
  [ --vsr]                  : add version string to the archive filename
  [ --vsp]                  : add version string to the ppd filename
  [ --zipdist]              : create a zip file of the .ppd and .tar.gz files
@@ -362,6 +364,10 @@ I<PROVIDE> element) to the ppd file.
 =item [--no-html]
 
 If specified, do not build html documentation.
+
+=item [--no-remote-lookup]
+
+If specified, do not query remote data sources for meta information.
 
 =item [--help]
 

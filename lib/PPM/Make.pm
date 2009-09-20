@@ -56,15 +56,16 @@ sub new {
 	      ppd => '',
 	      archive => '',
 	      zip => '',
-              prereq_pm => {},
+          prereq_pm => {},
 	      file => '',
 	      version => '',
-              use_mb => '',
+          use_mb => '',
 	      ARCHITECTURE => $arch,
 	      OS => $os,
 	      cpan_meta => $opts->{cpan_meta},
 	      search => $search,
 	      fetch_error => '',
+	      no_remote_lookup => $opts->{no_remote_lookup},
 	     };
   bless $self, $class;
 }
@@ -106,7 +107,9 @@ sub make_ppm {
             and not $force);
 
   my $meta = PPM::Make::Meta->new(dir => $self->{cwd},
-				  search => $self->{search});
+				  search => $self->{search},
+				  no_remote_lookup => $self->{no_remote_lookup},
+				  );
   die qq{Creating PPM::Make::Meta object failed}
     unless ($meta and (ref($meta) eq 'PPM::Make::Meta'));
   $meta->meta();
@@ -545,25 +548,27 @@ sub make_ppd {
   }
 
   my $search = $self->{search};
-  if ($search->search($name, mode => 'dist')) {
-    my $mods = $search->{dist_results}->{$name}->{mods};
-    if ($mods and (ref($mods) eq 'ARRAY')) {
-      foreach my $mod (@$mods) {
-	my $mod_name = $mod->{mod_name};
-	next unless $mod_name;
-	my $mod_vers = $mod->{mod_vers};
-	if ($] < 5.10) {
-	  $mod_name .= '::' unless ($mod_name =~ /::/);
-	}
-	push @{$d->{PROVIDE}}, {NAME => $mod_name, VERSION => $mod_vers};
+  my $no_remote_lookup = $self->{no_remote_lookup};
+  unless ($no_remote_lookup) {
+    if ($search->search($name, mode => 'dist')) {
+      my $mods = $search->{dist_results}->{$name}->{mods};
+      if ($mods and (ref($mods) eq 'ARRAY')) {
+        foreach my $mod (@$mods) {
+	      my $mod_name = $mod->{mod_name};
+	      next unless $mod_name;
+	      my $mod_vers = $mod->{mod_vers};
+	      if ($] < 5.10) {
+	        $mod_name .= '::' unless ($mod_name =~ /::/);
+	      }
+	      push @{$d->{PROVIDE}}, {NAME => $mod_name, VERSION => $mod_vers};
+        }
       }
     }
+    else {
+      $search->search_error();
+      warn qq{Cannot obtain the modules that '$name' provides};
+    }
   }
-  else {
-    $search->search_error();
-    warn qq{Cannot obtain the modules that '$name' provides};
-  }
-
   my $mod_ref;
   foreach my $dp (keys %{$args->{PREREQ_PM}}) {
     next if ($dp eq 'perl' or is_core($dp));
@@ -572,26 +577,28 @@ sub make_ppd {
     push @$mod_ref, $dp;
   }
   my %deps = map {$_ => 1} @$mod_ref;
-  if ($mod_ref and ref($mod_ref) eq 'ARRAY') {
-    if ($search->search($mod_ref, mode => 'mod')) {
-      my $matches = $search->{mod_results};
-      if ($matches and ref($matches) eq 'HASH') {
-	foreach my $dp(keys %$matches) {
-	  next unless $deps{$dp};
-	  my $results = $matches->{$dp};
-	  next unless (defined $results and defined $results->{mod_name});
-	  my $dist = $results->{dist_name};
-	  next if (not $dist or $dist =~ m!^perl$!
-		   or $dist =~ m!^Test! or is_ap_core($dist));
-	  $self->{prereq_pm}->{$dist} = 
-	    $d->{DEPENDENCY}->{$dist} = 
-	      cpan2ppd_version($args->{PREREQ_PM}->{$dp} || 0);
-	}
+  unless ($no_remote_lookup) {
+    if ($mod_ref and ref($mod_ref) eq 'ARRAY') {
+      if ($search->search($mod_ref, mode => 'mod')) {
+        my $matches = $search->{mod_results};
+        if ($matches and ref($matches) eq 'HASH') {
+          foreach my $dp(keys %$matches) {
+	        next unless $deps{$dp};
+	        my $results = $matches->{$dp};
+	        next unless (defined $results and defined $results->{mod_name});
+	        my $dist = $results->{dist_name};
+	        next if (not $dist or $dist =~ m!^perl$!
+		       or $dist =~ m!^Test! or is_ap_core($dist));
+	        $self->{prereq_pm}->{$dist} = 
+	          $d->{DEPENDENCY}->{$dist} = 
+	            cpan2ppd_version($args->{PREREQ_PM}->{$dp} || 0);
+          }
+        }
+        else {
+          $search->search_error();
+          warn qq{Cannot find information on prerequisites for '$name'};
+        }
       }
-    }
-    else {
-      $search->search_error();
-      warn qq{Cannot find information on prerequisites for '$name'};
     }
   }
   foreach (qw(OS ARCHITECTURE)) {
@@ -863,8 +870,9 @@ sub fetch_file {
     return $to;
   }
   my $search = $self->{search};
+  my $no_remote_lookup = $self->{no_remote_lookup};
   my $results;
-  unless ($dist =~ /$ext$/) {
+  unless ($no_remote_lookup or $dist =~ /$ext$/) {
     my $mod = $dist;
     $mod =~ s!-!::!g;
     if ($search->search($mod, mode => 'mod')) {
@@ -873,7 +881,7 @@ sub fetch_file {
     unless ($results) {
       $mod =~ s!::!-!g;
       if ($search->search($mod, mode => 'dist')) {
-	$results = $search->{dist_results}->{$mod};
+	    $results = $search->{dist_results}->{$mod};
       }
     }
     unless ($results->{cpanid} and $results->{dist_file}) {
@@ -1034,6 +1042,11 @@ If specified, do not not build the html documentation.
 =item no_ppm4 =E<gt> 1
 
 If specified, do not add ppm4 extensions to the ppd file.
+
+=item no_remote_lookup =E<gt> 1
+
+If specified, do not consult remote databases nor CPAN.pm for information
+not contained within the files of the distribution.
 
 =item dist =E<gt> value
 
